@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precificadora — Impressão 3D · Bambu Lab A1</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f5f0;color:#1a1a1a;padding:24px;min-height:100vh}
+  .container{max-width:780px;margin:0 auto}
+  h1{font-size:20px;font-weight:500;margin-bottom:4px}
+  .subtitle{font-size:13px;color:#888;margin-bottom:1rem}
+  .badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#E6F1FB;color:#185FA5;font-weight:500;margin-bottom:1.5rem}
+  .sec{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+  .sec-title{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .field{margin-bottom:10px}
+  .field label{font-size:13px;color:#666;display:block;margin-bottom:4px}
+  .field input,.field select{width:100%;padding:8px 10px;font-size:14px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;outline:none}
+  .field input:focus,.field select:focus{border-color:#378ADD}
+  .field .hint{font-size:11px;color:#aaa;margin-top:3px}
+  .row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .row label{font-size:13px;color:#666;flex:1;min-width:0}
+  .row input[type=range]{flex:1;min-width:0;accent-color:#378ADD}
+  .row .val{font-size:13px;font-weight:500;min-width:52px;text-align:right;color:#1a1a1a}
+  .tab-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+  .tab{padding:7px 16px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;color:#666;transition:all 0.15s}
+  .tab:hover{background:#f5f5f0}
+  .tab.active{background:#f0f0e8;color:#1a1a1a;font-weight:500;border-color:#aaa}
+  .panel{display:none}.panel.active{display:block}
+  .subtab-row{display:flex;gap:0;margin-bottom:1rem;border-radius:8px;overflow:hidden;border:0.5px solid #ccc;width:fit-content}
+  .subtab{padding:7px 18px;font-size:13px;cursor:pointer;background:#fff;color:#666;border:none;transition:all 0.15s}
+  .subtab:not(:last-child){border-right:0.5px solid #ccc}
+  .subtab.active{background:#f0f0e8;color:#1a1a1a;font-weight:500}
+  .subpanel{display:none}.subpanel.active{display:block}
+  .info-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .info-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0f0e8;color:#666}
+  .info-pill b{color:#1a1a1a}
+
+  /* Calculadora de energia */
+  .energia-calc{background:#f9f9f6;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+  .energia-calc .ec-title{font-size:12px;font-weight:500;color:#555;margin-bottom:8px}
+  .energia-calc .ec-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .energia-calc input{width:100px;padding:6px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:6px;outline:none;background:#fff}
+  .energia-calc input:focus{border-color:#378ADD}
+  .energia-calc span{font-size:13px;color:#666}
+  .energia-calc .ec-result{font-size:13px;font-weight:500;color:#185FA5;margin-top:6px}
+  .btn-aplicar{padding:5px 12px;font-size:12px;border:none;border-radius:6px;background:#378ADD;color:#fff;cursor:pointer;margin-top:6px}
+  .btn-aplicar:hover{background:#2a6fba}
+
+  .alerta-input-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .alerta-input-row label{font-size:13px;color:#666;white-space:nowrap}
+  .alerta-input-row input{width:160px;padding:8px 10px;font-size:14px;border:0.5px solid #ccc;border-radius:8px;outline:none}
+  .alerta-input-row input:focus{border-color:#378ADD}
+  .alerta-box{display:none;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6;margin-top:4px}
+  .alerta-box.prejuizo{background:#FCEBEB;border:1.5px solid #F09595;color:#501313}
+  .alerta-box.atencao{background:#FAEEDA;border:1.5px solid #FAC775;color:#412402}
+  .alerta-box.aviso{background:#FFF8E1;border:1.5px solid #FFD54F;color:#4a3500}
+  .alerta-box.ok{background:#EAF3DE;border:1.5px solid #C0DD97;color:#173404}
+  .alerta-titulo{font-size:14px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+
+  .result{background:#f5f5f0;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+  .r-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+  .rcard{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px;text-align:center}
+  .rcard .rl{font-size:11px;color:#888;margin-bottom:4px}
+  .rcard .rv{font-size:18px;font-weight:500;color:#1a1a1a}
+  .rcard .rs{font-size:11px;color:#aaa;margin-top:2px}
+  .price-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+  @media(max-width:520px){.price-strip{grid-template-columns:1fr 1fr}.r-grid{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+  .pcard{border-radius:8px;padding:12px;text-align:center;border:0.5px solid #e0e0d8}
+  .pcard .pl{font-size:11px;margin-bottom:4px;font-weight:500}
+  .pcard .pv{font-size:16px;font-weight:500}
+  .pcard .pm{font-size:11px;margin-top:2px}
+  .p50{background:#EAF3DE;color:#3B6D11}
+  .p60{background:#E6F1FB;color:#185FA5;border:2px solid #378ADD}
+  .p70{background:#FAEEDA;color:#854F0B}
+  .p80{background:#FAECE7;color:#993C1D}
+  .mkt-result{margin-top:1rem}
+  .mkt-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .mkt-card{border-radius:8px;padding:12px 14px;border:0.5px solid #e0e0d8;background:#fff}
+  .mkt-card .mc-title{font-size:12px;color:#888;margin-bottom:6px;font-weight:500}
+  .mkt-card .mc-val{font-size:18px;font-weight:500;color:#1a1a1a}
+  .mkt-card .mc-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .mkt-card.destaque{border:1.5px solid #378ADD;background:#f0f7ff}
+  .mkt-card.destaque .mc-title{color:#185FA5}
+  .mkt-card.destaque .mc-val{color:#185FA5}
+  table.breakdown{width:100%;border-collapse:collapse;font-size:13px}
+  table.breakdown td{padding:7px 8px;border-bottom:0.5px solid #eee;color:#1a1a1a}
+  table.breakdown td:last-child{text-align:right;font-weight:500}
+  table.breakdown tr:last-child td{border-bottom:none;font-weight:500;font-size:14px}
+  .tip{font-size:13px;color:#555;background:#fff;border-radius:8px;padding:10px 14px;border-left:3px solid #1D9E75;margin-top:10px;line-height:1.6}
+  .tip.warn{border-left-color:#D85A30}
+  .tip.info{border-left-color:#378ADD}
+  .add-btn{padding:7px 14px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;color:#555}
+  .add-btn:hover{background:#f5f5f0}
+  .remove-btn{padding:4px 8px;font-size:12px;border:0.5px solid #ccc;border-radius:6px;background:#fff;color:#888;cursor:pointer;margin-top:16px}
+  .peca-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding:10px;background:#f9f9f6;border-radius:8px}
+  .peca-field{flex:1}
+  .peca-field label{font-size:12px;color:#888;display:block;margin-bottom:4px}
+  .peca-field input{width:100%;padding:6px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:6px;outline:none}
+  .divider{border:none;border-top:0.5px solid #eee;margin:12px 0}
+  footer{text-align:center;font-size:12px;color:#aaa;margin-top:2rem;padding-top:1rem;border-top:0.5px solid #e0e0d8}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Precificadora de impressão 3D</h1>
+  <p class="subtitle">Calcule o custo real e o preço ideal de cada peça</p>
+  <div class="badge">⚡ Bambu Lab A1 · Tarifa Rio de Janeiro R$1,23/kWh</div>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="setTab('basic',this)">Básico</button>
+    <button class="tab" onclick="setTab('adv',this)">Custos avançados</button>
+    <button class="tab" onclick="setTab('mkt',this)">Marketplace</button>
+  </div>
+
+  <!-- BÁSICO -->
+  <div id="panel-basic" class="panel active">
+    <div class="sec">
+      <div class="sec-title">Peça principal</div>
+      <div class="g2">
+        <div class="field"><label>Peso do filamento (g)</label><input type="number" id="peso" value="182" min="0" step="0.1"></div>
+        <div class="field"><label>Custo do filamento (R$/kg)</label><input type="number" id="preco_kg" value="80" min="0"></div>
+      </div>
+      <div class="row"><label>Horas de impressão</label><input type="range" id="h" min="0" max="24" step="0.25" value="8.75"><span class="val" id="h_v">8h45</span></div>
+      <div class="row"><label>Minutos extras</label><input type="range" id="m" min="0" max="59" step="1" value="0"><span class="val" id="m_v">0min</span></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Peças do conjunto (tampa, base, etc.)</div>
+      <div id="pecas_list"></div>
+      <button class="add-btn" onclick="addPeca()">+ adicionar peça</button>
+    </div>
+  </div>
+
+  <!-- AVANÇADO -->
+  <div id="panel-adv" class="panel">
+    <div class="sec">
+      <div class="sec-title">Energia elétrica</div>
+
+      <div class="energia-calc">
+        <div class="ec-title">🔧 Calculadora de tarifa — digite sua tarifa e a potência da impressora</div>
+        <div class="ec-row">
+          <input type="number" id="ec_potencia" value="180" min="1" step="1" oninput="recalcEnergia()">
+          <span>W  ×</span>
+          <input type="number" id="ec_tarifa" value="1.23" min="0.01" step="0.01" oninput="recalcEnergia()">
+          <span>R$/kWh  ÷ 1000 =</span>
+        </div>
+        <div class="ec-result" id="ec_result">R$ 0,22 por hora</div>
+        <button class="btn-aplicar" onclick="aplicarEnergia()">Aplicar na calculadora</button>
+      </div>
+
+      <div class="info-row">
+        <span class="info-pill">Bambu A1: <b>~180W</b> média real</span>
+        <span class="info-pill">Rio de Janeiro (Light): <b>R$1,23/kWh</b></span>
+        <span class="info-pill">= <b>R$0,22/h</b></span>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Custo de energia (R$/h)</label>
+          <input type="number" id="energia" value="0.22" min="0" step="0.01">
+          <div class="hint">Use a calculadora acima para atualizar quando a tarifa mudar</div>
+        </div>
+        <div class="field">
+          <label>Desgaste da impressora (R$/h)</label>
+          <input type="number" id="desgaste" value="0.50" min="0" step="0.01">
+          <div class="hint">Bico, correia, lubrificação, depreciação</div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field"><label>Pós-processamento (min)</label>
+          <input type="number" id="pos" value="15" min="0">
+          <div class="hint">Remoção de suporte, lixar, montar, embalar</div>
+        </div>
+        <div class="field"><label>Sua hora de trabalho (R$/h)</label><input type="number" id="hora_trab" value="25" min="0"></div>
+      </div>
+      <div class="field"><label>Embalagem (R$)</label><input type="number" id="embalagem" value="4" min="0"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Impressora</div>
+      <div class="g2">
+        <div class="field"><label>Valor da impressora (R$)</label><input type="number" id="imp_val" value="3500" min="0"></div>
+        <div class="field"><label>Vida útil estimada (anos)</label><input type="number" id="imp_vida" value="3" min="1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKETPLACE -->
+  <div id="panel-mkt" class="panel">
+    <div class="subtab-row">
+      <button class="subtab active" onclick="setSubTab('shopee',this)">🛒 Shopee</button>
+      <button class="subtab" onclick="setSubTab('ml',this)">🛍 Mercado Livre</button>
+    </div>
+
+    <!-- SHOPEE -->
+    <div id="subpanel-shopee" class="subpanel active">
+      <div class="sec">
+        <div class="sec-title">Taxas da Shopee</div>
+        <div class="info-row">
+          <span class="info-pill">Comissão: <b>18% sobre valor total</b></span>
+          <span class="info-pill">Taxa fixa por item: <b>R$4,26</b></span>
+        </div>
+        <div class="g2">
+          <div class="field">
+            <label>Comissão Shopee (%)</label>
+            <input type="number" id="shopee_comissao" value="18" min="0" max="30" step="0.5">
+          </div>
+          <div class="field">
+            <label>Taxa fixa por item (R$)</label>
+            <input type="number" id="shopee_fixo" value="4.26" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="row"><label>Frete subsidiado (%)</label><input type="range" id="shopee_frete" min="0" max="30" step="1" value="10"><span class="val" id="shopee_frete_v">10%</span></div>
+        <hr class="divider">
+        <div class="field"><label>Preço que deseja cobrar na Shopee (R$)</label><input type="number" id="shopee_preco" placeholder="R$ 0,00" min="0" step="0.5"></div>
+        <div id="shopee_resultado" class="mkt-result"></div>
+      </div>
+      <div class="tip info">Na Shopee a comissão de 18% incide sobre o valor total incluindo frete. Some sempre comissão + taxa fixa + frete subsidiado antes de definir o preço.</div>
+    </div>
+
+    <!-- MERCADO LIVRE -->
+    <div id="subpanel-ml" class="subpanel">
+      <div class="sec">
+        <div class="sec-title">Configuração do anúncio — 2026</div>
+        <div class="g2">
+          <div class="field">
+            <label>Tipo de anúncio</label>
+            <select id="ml_tipo" onchange="calcML()">
+              <option value="classico_10">Clássico — 10%</option>
+              <option value="classico_12">Clássico — 12%</option>
+              <option value="classico_14" selected>Clássico — 14%</option>
+              <option value="premium_16">Premium — 16%</option>
+              <option value="premium_17">Premium — 17%</option>
+              <option value="premium_19">Premium — 19%</option>
+            </select>
+            <div class="hint">Clássico 10-14% · Premium 16-19% (parcelado s/ juros)</div>
+          </div>
+          <div class="field">
+            <label>Preço do produto (R$)</label>
+            <input type="number" id="ml_preco" placeholder="R$ 0,00" min="0" step="0.5">
+            <div class="hint">Abaixo de R$79: custo operacional variável</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Custo de frete/logística (R$)</label>
+          <input type="number" id="ml_frete" value="0" min="0" step="0.5">
+          <div class="hint">Acima de R$79: frete grátis obrigatório — insira o custo real do envio</div>
+        </div>
+        <div id="ml_resultado" class="mkt-result"></div>
+      </div>
+      <div class="tip info" style="margin-bottom:10px"><strong>Regras 2026:</strong> Abaixo de R$79 não há mais taxa fixa de R$6 — substituída por custo operacional variável por peso/dimensão. Acima de R$79, frete grátis obrigatório.</div>
+      <div class="tip warn">Para margem exata por categoria e peso use a planilha oficial do Mercado Livre. Os valores aqui são estimativas baseadas nas comissões de 2026.</div>
+    </div>
+  </div>
+
+  <!-- ALERTA -->
+  <div class="sec">
+    <div class="sec-title">Verificar preço praticado (venda direta)</div>
+    <div class="alerta-input-row">
+      <label>Quanto você quer cobrar?</label>
+      <input type="number" id="preco_usuario" placeholder="R$ 0,00" min="0" step="0.5">
+    </div>
+    <div class="alerta-box" id="alerta_box">
+      <div class="alerta-titulo"><span id="alerta_icon"></span><span id="alerta_titulo_el"></span></div>
+      <div id="alerta_msg"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="result">
+    <div class="sec-title" style="margin-bottom:12px">Resultado — venda direta</div>
+    <div class="r-grid">
+      <div class="rcard"><div class="rl">Custo total</div><div class="rv" id="r_custo">—</div><div class="rs">sem margem</div></div>
+      <div class="rcard"><div class="rl">Lucro/hora máquina</div><div class="rv" id="r_lph">—</div><div class="rs">com margem 60%</div></div>
+      <div class="rcard"><div class="rl">Peças/dia (18h)</div><div class="rv" id="r_ppd">—</div><div class="rs" id="r_ppd_sub">lucro diário</div></div>
+    </div>
+    <div class="price-strip">
+      <div class="pcard p50"><div class="pl">Margem 50%</div><div class="pv" id="p50">—</div><div class="pm">mínimo</div></div>
+      <div class="pcard p60"><div class="pl">Margem 60% ★</div><div class="pv" id="p60">—</div><div class="pm">recomendado</div></div>
+      <div class="pcard p70"><div class="pl">Margem 70%</div><div class="pv" id="p70">—</div><div class="pm">premium</div></div>
+      <div class="pcard p80"><div class="pl">Margem 80%</div><div class="pv" id="p80">—</div><div class="pm">personalizado</div></div>
+    </div>
+    <table class="breakdown" id="breakdown_table"></table>
+    <div class="tip" id="tip_res"></div>
+  </div>
+
+  <footer>Precificadora de Impressão 3D · Bambu Lab A1 · Rio de Janeiro · Tarifa Light R$1,23/kWh · 2026</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let pecas=[],pecaId=0,custoAtual=0;
+
+function setTab(t,btn){
+  document.querySelectorAll('.tab-row .tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');$('panel-'+t).classList.add('active');
+}
+function setSubTab(t,btn){
+  document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');$('subpanel-'+t).classList.add('active');
+}
+function hToStr(h){
+  const hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return hh>0?(mm>0?hh+'h'+mm+'min':hh+'h'):(mm+'min');
+}
+function addPeca(){
+  const id=++pecaId;pecas.push({id,peso:10,tempo:0.5});renderPecas();calc();
+}
+function removePeca(id){
+  pecas=pecas.filter(p=>p.id!==id);renderPecas();calc();
+}
+function renderPecas(){
+  $('pecas_list').innerHTML=pecas.length===0
+    ?'<p style="font-size:13px;color:#aaa;margin-bottom:8px">Nenhuma peça adicional.</p>'
+    :pecas.map(p=>`
+    <div class="peca-row">
+      <div class="peca-field"><label>Peso (g)</label>
+        <input type="number" value="${p.peso}" min="0" step="0.1" onchange="pecas.find(x=>x.id==${p.id}).peso=parseFloat(this.value)||0;calc()">
+      </div>
+      <div class="peca-field"><label>Tempo impressão (h)</label>
+        <input type="number" value="${p.tempo}" min="0" step="0.25" onchange="pecas.find(x=>x.id==${p.id}).tempo=parseFloat(this.value)||0;calc()">
+      </div>
+      <button class="remove-btn" onclick="removePeca(${p.id})">✕</button>
+    </div>`).join('');
+}
+function v(id){return parseFloat($(id)?$(id).value:0)||0;}
+function fR(n){return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+// Calculadora de energia
+function recalcEnergia(){
+  const pot=v('ec_potencia'),tar=v('ec_tarifa');
+  const resultado=pot*tar/1000;
+  $('ec_result').textContent='R$ '+resultado.toFixed(4).replace('.',',')+' por hora';
+}
+function aplicarEnergia(){
+  const pot=v('ec_potencia'),tar=v('ec_tarifa');
+  const resultado=(pot*tar/1000).toFixed(4);
+  $('energia').value=resultado;
+  calc();
+  $('ec_result').textContent='✓ Aplicado! R$ '+parseFloat(resultado).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4})+' por hora';
+}
+
+// Shopee
+function calcShopee(){
+  const preco=v('shopee_preco');
+  const comissao=v('shopee_comissao')/100;
+  const fixo=v('shopee_fixo');
+  const frete=v('shopee_frete')/100;
+  const custo=custoAtual;
+  const el=$('shopee_resultado');
+  if(!preco){el.innerHTML='';return;}
+  const taxa_comissao=preco*comissao;
+  const taxa_frete=preco*frete;
+  const total_taxas=taxa_comissao+fixo+taxa_frete;
+  const liquido=preco-total_taxas;
+  const lucro=liquido-custo;
+  const margem=preco>0?(lucro/preco)*100:0;
+  const precoMinimo=(custo+fixo)/(1-comissao-frete);
+  el.innerHTML=`
+    <div class="mkt-cards">
+      <div class="mkt-card"><div class="mc-title">Taxas totais Shopee</div><div class="mc-val">${fR(total_taxas)}</div><div class="mc-sub">comissão + fixo + frete</div></div>
+      <div class="mkt-card"><div class="mc-title">Você recebe líquido</div><div class="mc-val">${fR(liquido)}</div><div class="mc-sub">após todas as taxas</div></div>
+      <div class="mkt-card"><div class="mc-title">Lucro por peça</div><div class="mc-val" style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</div><div class="mc-sub">margem real ${margem.toFixed(0)}%</div></div>
+      <div class="mkt-card destaque"><div class="mc-title">Preço mínimo na Shopee</div><div class="mc-val">${fR(precoMinimo)}</div><div class="mc-sub">para cobrir custos + taxas</div></div>
+    </div>
+    <table class="breakdown">
+      <tr><td style="color:#666">Preço anunciado</td><td>${fR(preco)}</td></tr>
+      <tr><td style="color:#666">Comissão ${(comissao*100).toFixed(0)}%</td><td>− ${fR(taxa_comissao)}</td></tr>
+      <tr><td style="color:#666">Taxa fixa por item</td><td>− ${fR(fixo)}</td></tr>
+      <tr><td style="color:#666">Frete subsidiado ${(frete*100).toFixed(0)}%</td><td>− ${fR(taxa_frete)}</td></tr>
+      <tr><td style="color:#666">Custo de produção</td><td>− ${fR(custo)}</td></tr>
+      <tr style="border-top:1px solid #ddd"><td><strong>Lucro líquido</strong></td><td><strong style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</strong></td></tr>
+    </table>
+    ${lucro<0?'<div class="tip warn" style="margin-top:10px">Prejuízo nesse preço. Mínimo para não perder: '+fR(precoMinimo)+'</div>':
+      margem<30?'<div class="tip warn" style="margin-top:10px">Margem baixa para marketplace. Considere subir para pelo menos '+fR(precoMinimo*1.35)+'.</div>':
+      '<div class="tip" style="margin-top:10px">Preço viável na Shopee com margem de '+margem.toFixed(0)+'% após todas as taxas.</div>'}
+  `;
+}
+
+// Mercado Livre
+function calcML(){
+  const tipoMap={classico_10:0.10,classico_12:0.12,classico_14:0.14,premium_16:0.16,premium_17:0.17,premium_19:0.19};
+  const tipo=$('ml_tipo').value;
+  const comissao=tipoMap[tipo]||0.14;
+  const preco=v('ml_preco');
+  const frete=v('ml_frete');
+  const custo=custoAtual;
+  const el=$('ml_resultado');
+  if(!preco){el.innerHTML='';return;}
+  const isPremium=tipo.startsWith('premium');
+  const abaixo79=preco<79;
+  const custo_op=abaixo79?preco*0.08:0;
+  const taxa_comissao=preco*comissao;
+  const total_taxas=taxa_comissao+frete+custo_op;
+  const liquido=preco-total_taxas;
+  const lucro=liquido-custo;
+  const margem=preco>0?(lucro/preco)*100:0;
+  const precoMinimo=custo/(1-comissao-0.08);
+  el.innerHTML=`
+    ${abaixo79?'<div class="tip warn" style="margin-bottom:10px">Produto abaixo de R$79: custo operacional variável (~8% estimado) no lugar da taxa fixa antiga de R$6.</div>':''}
+    ${preco>=79?'<div class="tip info" style="margin-bottom:10px">Acima de R$79: frete grátis obrigatório. Inclua o custo real do envio no campo de logística.</div>':''}
+    <div class="mkt-cards">
+      <div class="mkt-card"><div class="mc-title">Comissão ML (${(comissao*100).toFixed(0)}%)</div><div class="mc-val">${fR(taxa_comissao)}</div><div class="mc-sub">${isPremium?'premium — parcelado s/ juros':'anúncio clássico'}</div></div>
+      <div class="mkt-card"><div class="mc-title">Você recebe líquido</div><div class="mc-val">${fR(liquido)}</div><div class="mc-sub">após comissão + frete + op.</div></div>
+      <div class="mkt-card"><div class="mc-title">Lucro por peça</div><div class="mc-val" style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</div><div class="mc-sub">margem real ${margem.toFixed(0)}%</div></div>
+      <div class="mkt-card destaque"><div class="mc-title">Preço mínimo no ML</div><div class="mc-val">${fR(precoMinimo)}</div><div class="mc-sub">estimativa para cobrir custos</div></div>
+    </div>
+    <table class="breakdown">
+      <tr><td style="color:#666">Preço anunciado</td><td>${fR(preco)}</td></tr>
+      <tr><td style="color:#666">Comissão ${(comissao*100).toFixed(0)}% (${isPremium?'Premium':'Clássico'})</td><td>− ${fR(taxa_comissao)}</td></tr>
+      ${abaixo79?`<tr><td style="color:#666">Custo operacional variável (~8%)</td><td>− ${fR(custo_op)}</td></tr>`:''}
+      ${frete>0?`<tr><td style="color:#666">Frete/logística</td><td>− ${fR(frete)}</td></tr>`:''}
+      <tr><td style="color:#666">Custo de produção</td><td>− ${fR(custo)}</td></tr>
+      <tr style="border-top:1px solid #ddd"><td><strong>Lucro líquido</strong></td><td><strong style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</strong></td></tr>
+    </table>
+    ${lucro<0?'<div class="tip warn" style="margin-top:10px">Prejuízo nesse preço. Mínimo estimado: '+fR(precoMinimo)+'</div>':
+      margem<25?'<div class="tip warn" style="margin-top:10px">Margem apertada para marketplace. Considere subir o preço ou usar anúncio Clássico de menor comissão.</div>':
+      '<div class="tip" style="margin-top:10px">Preço viável no Mercado Livre com margem de '+margem.toFixed(0)+'% após taxas.</div>'}
+  `;
+}
+
+// Alerta
+function atualizarAlerta(){
+  const preco=v('preco_usuario');
+  const box=$('alerta_box');
+  if(!preco){box.style.display='none';return;}
+  const custo=custoAtual;
+  const p50=custo/0.5,p60=custo/0.4;
+  const margem=preco>0?((preco-custo)/preco)*100:0;
+  const diferenca=preco-custo;
+  box.style.display='block';
+  if(preco<=custo){
+    box.className='alerta-box prejuizo';
+    $('alerta_icon').textContent='✗';
+    $('alerta_titulo_el').textContent='Prejuízo confirmado';
+    $('alerta_msg').textContent='Cobrando '+fR(preco)+' você perde '+fR(Math.abs(diferenca))+' por peça. Custo real: '+fR(custo)+'. Mínimo sem prejuízo: '+fR(custo)+'.';
+  } else if(preco<p50){
+    box.className='alerta-box prejuizo';
+    $('alerta_icon').textContent='⚠';
+    $('alerta_titulo_el').textContent='Preço perigoso — margem abaixo de 50%';
+    $('alerta_msg').textContent='Margem de '+margem.toFixed(0)+'%. Cobre o básico mas não paga desgaste nem imprevistos. Mínimo recomendado: '+fR(p50)+'.';
+  } else if(preco<p60){
+    box.className='alerta-box atencao';
+    $('alerta_icon').textContent='!';
+    $('alerta_titulo_el').textContent='Preço abaixo do recomendado';
+    $('alerta_msg').textContent='Margem de '+margem.toFixed(0)+'%. Funciona no curto prazo mas não sobra para reinvestir. Ideal: '+fR(p60)+'.';
+  } else {
+    box.className='alerta-box ok';
+    $('alerta_icon').textContent='✓';
+    $('alerta_titulo_el').textContent='Preço saudável — margem de '+margem.toFixed(0)+'%';
+    $('alerta_msg').textContent=fR(preco)+' cobre todos os custos e sobra '+fR(diferenca)+' por peça. '+(margem>=70?'Excelente! Você tem espaço para descontos pontuais sem prejuízo.':'Continue assim e considere subir gradualmente.');
+  }
+}
+
+// Calc principal
+function calc(){
+  const pesoBase=v('peso'),hBase=v('h'),mBase=v('m');
+  const tempoBase=hBase+(mBase/60);
+  let pesoTotal=pesoBase,tempoTotal=tempoBase;
+  pecas.forEach(p=>{pesoTotal+=p.peso;tempoTotal+=p.tempo;});
+  const preco_kg=v('preco_kg'),energia=v('energia'),desgaste=v('desgaste');
+  const pos=v('pos')/60,hora_trab=v('hora_trab'),embalagem=v('embalagem');
+  const imp_val=v('imp_val'),imp_vida=v('imp_vida');
+  const c_fil=(pesoTotal/1000)*preco_kg;
+  const c_energia=energia*tempoTotal;
+  const c_desgaste=desgaste*tempoTotal;
+  const c_pos=pos*hora_trab;
+  const c_emb=embalagem;
+  const c_imp=imp_val>0?(imp_val/(imp_vida*365*18))*tempoTotal:0;
+  const custo=c_fil+c_energia+c_desgaste+c_pos+c_emb+c_imp;
+  custoAtual=custo;
+  const p50=custo/0.5,p60=custo/0.4,p70=custo/0.3,p80=custo/0.2;
+  $('h_v').textContent=hToStr(hBase);
+  $('m_v').textContent=mBase+'min';
+  $('r_custo').textContent=fR(custo);
+  const lph=tempoTotal>0?(p60-custo)/tempoTotal:0;
+  $('r_lph').textContent=fR(lph)+'/h';
+  const ppd=tempoTotal>0?Math.floor(18/tempoTotal):0;
+  $('r_ppd').textContent=ppd+' peças';
+  $('r_ppd_sub').textContent='~'+fR(ppd*(p60-custo))+'/dia';
+  $('p50').textContent=fR(p50);
+  $('p60').textContent=fR(p60);
+  $('p70').textContent=fR(p70);
+  $('p80').textContent=fR(p80);
+  $('breakdown_table').innerHTML=`
+    <tr><td style="color:#666">Filamento (${pesoTotal.toFixed(1)}g)</td><td>${fR(c_fil)}</td></tr>
+    <tr><td style="color:#666">Energia — Bambu A1 (${tempoTotal.toFixed(2)}h × R$0,22)</td><td>${fR(c_energia)}</td></tr>
+    <tr><td style="color:#666">Desgaste impressora (bico, correia, etc.)</td><td>${fR(c_desgaste)}</td></tr>
+    <tr><td style="color:#666">Pós-processamento (${v('pos').toFixed(0)}min × R$${v('hora_trab')}/h)</td><td>${fR(c_pos)}</td></tr>
+    <tr><td style="color:#666">Embalagem</td><td>${fR(c_emb)}</td></tr>
+    ${c_imp>0?`<tr><td style="color:#666">Depreciação da impressora</td><td>${fR(c_imp)}</td></tr>`:''}
+    <tr style="border-top:1px solid #ddd"><td><strong>Custo total</strong></td><td><strong>${fR(custo)}</strong></td></tr>
+  `;
+  let tip='';
+  if(tempoTotal>10) tip='Peça com '+hToStr(tempoTotal)+' de impressão é demorada. Certifique-se de cobrar pelo menos '+fR(p60)+' para compensar o tempo de máquina.';
+  else if(custo<10) tip='Custo muito baixo graças à eficiência da Bambu A1! O preço de '+fR(p60)+' com 60% de margem é altamente competitivo.';
+  else tip='Com '+fR(custo)+' de custo real, vender abaixo de '+fR(p50)+' é prejuízo garantido. Não caia na armadilha de igualar preço de marketplace.';
+  $('tip_res').textContent=tip;
+  atualizarAlerta();
+  calcShopee();
+  calcML();
+}
+
+['peso','preco_kg','h','m','energia','desgaste','pos','hora_trab','embalagem','imp_val','imp_vida'].forEach(id=>{
+  const el=$(id);if(el)el.addEventListener('input',calc);
+});
+['shopee_comissao','shopee_fixo','shopee_preco'].forEach(id=>{
+  const el=$(id);if(el)el.addEventListener('input',calcShopee);
+});
+$('shopee_frete').addEventListener('input',()=>{$('shopee_frete_v').textContent=v('shopee_frete').toFixed(0)+'%';calcShopee();});
+['ml_preco','ml_frete'].forEach(id=>{
+  const el=$(id);if(el)el.addEventListener('input',calcML);
+});
+$('preco_usuario').addEventListener('input',atualizarAlerta);
+
+recalcEnergia();
+renderPecas();
+calc();
+</script>
+</body>
+</html>
