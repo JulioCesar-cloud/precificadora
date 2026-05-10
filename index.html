@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precificadora — Impressão 3D · Bambu Lab A1</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f5f0;color:#1a1a1a;padding:24px;min-height:100vh}
+  .container{max-width:780px;margin:0 auto}
+  h1{font-size:20px;font-weight:500;margin-bottom:4px}
+  .subtitle{font-size:13px;color:#888;margin-bottom:1rem}
+  .badge{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#E6F1FB;color:#185FA5;font-weight:500;margin-bottom:1.5rem}
+  .sec{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+  .sec-title{font-size:11px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+  .field{margin-bottom:10px}
+  .field label{font-size:13px;color:#666;display:block;margin-bottom:4px}
+  .field input,.field select{width:100%;padding:8px 10px;font-size:14px;border:0.5px solid #ccc;border-radius:8px;background:#fff;color:#1a1a1a;outline:none}
+  .field input:focus,.field select:focus{border-color:#378ADD}
+  .field .hint{font-size:11px;color:#aaa;margin-top:3px}
+  .row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .row label{font-size:13px;color:#666;flex:1;min-width:0}
+  .row input[type=range]{flex:1;min-width:0;accent-color:#378ADD}
+  .row .val{font-size:13px;font-weight:500;min-width:52px;text-align:right;color:#1a1a1a}
+  .tab-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+  .tab{padding:7px 16px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;color:#666;transition:all 0.15s}
+  .tab:hover{background:#f5f5f0}
+  .tab.active{background:#f0f0e8;color:#1a1a1a;font-weight:500;border-color:#aaa}
+  .panel{display:none}.panel.active{display:block}
+  .subtab-row{display:flex;gap:0;margin-bottom:1rem;border-radius:8px;overflow:hidden;border:0.5px solid #ccc;width:fit-content}
+  .subtab{padding:7px 18px;font-size:13px;cursor:pointer;background:#fff;color:#666;border:none;transition:all 0.15s}
+  .subtab:not(:last-child){border-right:0.5px solid #ccc}
+  .subtab.active{background:#f0f0e8;color:#1a1a1a;font-weight:500}
+  .subpanel{display:none}.subpanel.active{display:block}
+  .info-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .info-pill{font-size:12px;padding:4px 10px;border-radius:20px;background:#f0f0e8;color:#666}
+  .info-pill b{color:#1a1a1a}
+  .energia-calc{background:#f9f9f6;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px 14px;margin-bottom:12px}
+  .energia-calc .ec-title{font-size:12px;font-weight:500;color:#555;margin-bottom:8px}
+  .energia-calc .ec-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .energia-calc input{width:100px;padding:6px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:6px;outline:none;background:#fff}
+  .energia-calc input:focus{border-color:#378ADD}
+  .energia-calc span{font-size:13px;color:#666}
+  .energia-calc .ec-result{font-size:13px;font-weight:500;color:#185FA5;margin-top:6px}
+  .btn-aplicar{padding:5px 12px;font-size:12px;border:none;border-radius:6px;background:#378ADD;color:#fff;cursor:pointer;margin-top:6px}
+  .btn-aplicar:hover{background:#2a6fba}
+  .alerta-input-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .alerta-input-row label{font-size:13px;color:#666;white-space:nowrap}
+  .alerta-input-row input{width:160px;padding:8px 10px;font-size:14px;border:0.5px solid #ccc;border-radius:8px;outline:none}
+  .alerta-input-row input:focus{border-color:#378ADD}
+  .alerta-box{display:none;border-radius:8px;padding:14px 16px;font-size:13px;line-height:1.6;margin-top:4px}
+  .alerta-box.prejuizo{background:#FCEBEB;border:1.5px solid #F09595;color:#501313}
+  .alerta-box.atencao{background:#FAEEDA;border:1.5px solid #FAC775;color:#412402}
+  .alerta-box.aviso{background:#FFF8E1;border:1.5px solid #FFD54F;color:#4a3500}
+  .alerta-box.ok{background:#EAF3DE;border:1.5px solid #C0DD97;color:#173404}
+  .alerta-titulo{font-size:14px;font-weight:500;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+  .result{background:#f5f5f0;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+  .r-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+  .rcard{background:#fff;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px;text-align:center}
+  .rcard .rl{font-size:11px;color:#888;margin-bottom:4px}
+  .rcard .rv{font-size:18px;font-weight:500;color:#1a1a1a}
+  .rcard .rs{font-size:11px;color:#aaa;margin-top:2px}
+  .price-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+  @media(max-width:520px){.price-strip{grid-template-columns:1fr 1fr}.r-grid{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.g3{grid-template-columns:1fr 1fr}}
+  .pcard{border-radius:8px;padding:12px;text-align:center;border:0.5px solid #e0e0d8}
+  .pcard .pl{font-size:11px;margin-bottom:4px;font-weight:500}
+  .pcard .pv{font-size:16px;font-weight:500}
+  .pcard .pm{font-size:11px;margin-top:2px}
+  .p50{background:#EAF3DE;color:#3B6D11}
+  .p60{background:#E6F1FB;color:#185FA5;border:2px solid #378ADD}
+  .p70{background:#FAEEDA;color:#854F0B}
+  .p80{background:#FAECE7;color:#993C1D}
+  .mkt-result{margin-top:1rem}
+  .mkt-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .mkt-card{border-radius:8px;padding:12px 14px;border:0.5px solid #e0e0d8;background:#fff}
+  .mkt-card .mc-title{font-size:12px;color:#888;margin-bottom:6px;font-weight:500}
+  .mkt-card .mc-val{font-size:18px;font-weight:500;color:#1a1a1a}
+  .mkt-card .mc-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .mkt-card.destaque{border:1.5px solid #378ADD;background:#f0f7ff}
+  .mkt-card.destaque .mc-title{color:#185FA5}
+  .mkt-card.destaque .mc-val{color:#185FA5}
+  table.breakdown{width:100%;border-collapse:collapse;font-size:13px}
+  table.breakdown td{padding:7px 8px;border-bottom:0.5px solid #eee;color:#1a1a1a}
+  table.breakdown td:last-child{text-align:right;font-weight:500}
+  table.breakdown tr:last-child td{border-bottom:none;font-weight:500;font-size:14px}
+  .tip{font-size:13px;color:#555;background:#fff;border-radius:8px;padding:10px 14px;border-left:3px solid #1D9E75;margin-top:10px;line-height:1.6}
+  .tip.warn{border-left-color:#D85A30}
+  .tip.info{border-left-color:#378ADD}
+  .add-btn{padding:7px 14px;font-size:13px;border:0.5px solid #ccc;border-radius:8px;cursor:pointer;background:#fff;color:#555}
+  .add-btn:hover{background:#f5f5f0}
+  .remove-btn{padding:4px 8px;font-size:12px;border:0.5px solid #ccc;border-radius:6px;background:#fff;color:#888;cursor:pointer;margin-top:16px}
+  .peca-row{margin-bottom:8px;padding:10px 12px;background:#f9f9f6;border-radius:8px}
+  .peca-row-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .peca-row-header span{font-size:12px;color:#888;font-weight:500}
+  .peca-field{flex:1}
+  .peca-field label{font-size:12px;color:#888;display:block;margin-bottom:4px}
+  .peca-field input[type=number]{width:100%;padding:6px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:6px;outline:none;box-sizing:border-box}
+  .peca-slider-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .peca-slider-row label{font-size:12px;color:#888;flex:1;min-width:0}
+  .peca-slider-row input[type=range]{flex:1;min-width:0;accent-color:#378ADD}
+  .peca-slider-row .val{font-size:12px;font-weight:500;min-width:52px;text-align:right;color:#1a1a1a}
+  .divider{border:none;border-top:0.5px solid #eee;margin:12px 0}
+
+  /* Margem de Contribuição */
+  .mc-section{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem}
+  .mc-big-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+  .mc-big-card{border-radius:10px;padding:14px;text-align:center;border:0.5px solid #e0e0d8}
+  .mc-big-card .mcb-label{font-size:11px;color:#888;margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em}
+  .mc-big-card .mcb-val{font-size:22px;font-weight:500;margin-bottom:2px}
+  .mc-big-card .mcb-sub{font-size:11px;color:#aaa}
+  .mc-verde{background:#EAF3DE;border-color:#C0DD97}
+  .mc-verde .mcb-val{color:#2B5A08}
+  .mc-azul{background:#E6F1FB;border-color:#A8CBF0}
+  .mc-azul .mcb-val{color:#185FA5}
+  .mc-laranja{background:#FAEEDA;border-color:#FAC775}
+  .mc-laranja .mcb-val{color:#7A3E00}
+  .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1rem}
+  .prod-card{background:#f9f9f6;border:0.5px solid #e0e0d8;border-radius:8px;padding:12px;text-align:center}
+  .prod-card .pc-label{font-size:11px;color:#888;margin-bottom:4px}
+  .prod-card .pc-val{font-size:16px;font-weight:500;color:#1a1a1a}
+  .prod-card .pc-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .pe-bar{background:#f0f0e8;border-radius:8px;padding:14px;margin-bottom:10px}
+  .pe-bar .pe-title{font-size:12px;color:#666;margin-bottom:8px;font-weight:500}
+  .pe-bar .bar-wrap{background:#e0e0d8;border-radius:6px;height:12px;overflow:hidden;margin-bottom:6px}
+  .pe-bar .bar-fill{height:100%;border-radius:6px;transition:width 0.4s}
+  .pe-bar .bar-labels{display:flex;justify-content:space-between;font-size:11px;color:#888}
+  .cenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .cenario-card{border-radius:8px;padding:12px;text-align:center;border:0.5px solid #e0e0d8;background:#fff}
+  .cenario-card .cc-title{font-size:11px;color:#888;margin-bottom:6px;font-weight:500}
+  .cenario-card .cc-pecas{font-size:18px;font-weight:500;color:#1a1a1a;margin-bottom:2px}
+  .cenario-card .cc-lucro{font-size:13px;font-weight:500}
+  .cenario-card .cc-sub{font-size:11px;color:#aaa;margin-top:2px}
+
+  footer{text-align:center;font-size:12px;color:#aaa;margin-top:2rem;padding-top:1rem;border-top:0.5px solid #e0e0d8}
+
+  /* Gastos extras */
+  .extra-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:8px;padding:10px;background:#f9f9f6;border-radius:8px;flex-wrap:wrap}
+  .extra-field{flex:2;min-width:100px}
+  .extra-field.sm{flex:1;min-width:70px}
+  .extra-field label{font-size:12px;color:#888;display:block;margin-bottom:4px}
+  .extra-field input{width:100%;padding:6px 8px;font-size:13px;border:0.5px solid #ccc;border-radius:6px;outline:none}
+  .extra-field input:focus{border-color:#378ADD}
+  .extra-total{font-size:12px;color:#185FA5;font-weight:500;margin-top:10px;padding:7px 12px;background:#E6F1FB;border-radius:6px;display:inline-block}
+
+  /* Lista de produtos */
+  .prod-list-empty{font-size:13px;color:#aaa;padding:24px;text-align:center;border:1px dashed #ddd;border-radius:10px}
+  .produto-card{background:#fff;border:0.5px solid #e0e0d8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px}
+  .produto-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .produto-card-header input.prod-nome{flex:1;font-size:15px;font-weight:500;border:none;border-bottom:1px solid #e0e0d8;padding:4px 0;outline:none;background:transparent;color:#1a1a1a}
+  .produto-card-header input.prod-nome:focus{border-bottom-color:#378ADD}
+  .produto-card-header .prod-del{padding:4px 8px;font-size:12px;border:0.5px solid #ccc;border-radius:6px;background:#fff;color:#888;cursor:pointer;white-space:nowrap}
+  .produto-card-header .prod-del:hover{background:#FCEBEB;border-color:#F09595;color:#501313}
+  .prod-result-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:0.5px solid #f0f0e8}
+  @media(max-width:520px){.prod-result-strip{grid-template-columns:1fr 1fr}}
+  .prs-card{background:#f9f9f6;border:0.5px solid #e0e0d8;border-radius:8px;padding:10px;text-align:center}
+  .prs-card .prs-l{font-size:10px;color:#888;margin-bottom:3px}
+  .prs-card .prs-v{font-size:14px;font-weight:500;color:#1a1a1a}
+  .prs-card.destaque{background:#E6F1FB;border-color:#A8CBF0}
+  .prs-card.destaque .prs-v{color:#185FA5}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Precificadora de impressão 3D</h1>
+  <p class="subtitle">Calcule o custo real, preço ideal e capacidade de produção</p>
+  <div class="badge">⚡ Bambu Lab A1 · Tarifa Rio de Janeiro R$1,23/kWh</div>
+
+  <div class="tab-row">
+    <button class="tab active" onclick="setTab('basic',this)">Básico</button>
+    <button class="tab" onclick="setTab('adv',this)">Custos avançados</button>
+    <button class="tab" onclick="setTab('mkt',this)">Marketplace</button>
+    <button class="tab" onclick="setTab('produtos',this)">📦 Meus produtos</button>
+  </div>
+
+  <!-- BÁSICO -->
+  <div id="panel-basic" class="panel active">
+    <div class="sec">
+      <div class="sec-title">Peça principal</div>
+      <div class="g2">
+        <div class="field"><label>Peso total da bandeja (g)</label><input type="number" id="peso" value="182" min="0" step="0.1"><div class="hint">Peso total de todas as peças na bandeja</div></div>
+        <div class="field"><label>Custo do filamento (R$/kg)</label><input type="number" id="preco_kg" value="80" min="0"></div>
+      </div>
+      <div class="row"><label>Horas de impressão (bandeja inteira)</label><input type="range" id="h" min="0" max="24" step="0.25" value="8.75"><span class="val" id="h_v">8h45</span></div>
+      <div class="row"><label>Minutos extras</label><input type="range" id="m" min="0" max="59" step="1" value="0"><span class="val" id="m_v">0min</span></div>
+      <div class="g2" style="margin-top:10px">
+        <div class="field">
+          <label>Peças por bandeja</label>
+          <input type="number" id="qtd_bandeja" value="1" min="1" step="1">
+          <div class="hint">Quantas peças cabem em 1 impressão simultânea</div>
+        </div>
+        <div class="field">
+          <label>Quantidade de impressoras</label>
+          <input type="number" id="qtd_impressoras" value="1" min="1" step="1">
+          <div class="hint">Impressoras rodando em paralelo</div>
+        </div>
+        <div class="field">
+          <label>Horas de operação por dia</label>
+          <input type="number" id="horas_dia" value="18" min="1" max="24" step="0.5">
+          <div class="hint">Quantas horas a impressora roda por dia</div>
+        </div>
+        <div class="field">
+          <label>Dias de operação por mês</label>
+          <input type="number" id="dias_mes" value="22" min="1" max="31" step="1">
+          <div class="hint">Dias úteis ou corridos que você trabalha</div>
+        </div>
+      </div>
+      <div class="info-pill" id="bandeja_info" style="margin-top:4px;display:inline-block;font-size:12px;padding:5px 12px;border-radius:20px;background:#f0f0e8;color:#666">1 peça por impressão · 1 impressora · 18h/dia · 22 dias/mês</div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Peças do conjunto (tampa, base, etc.)</div>
+      <div id="pecas_list"></div>
+      <button class="add-btn" onclick="addPeca()">+ adicionar peça</button>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Gastos extras (materiais adicionais)</div>
+      <p style="font-size:12px;color:#aaa;margin-bottom:10px">Argolas, buchas, parafusos, inserts, fitas — qualquer item que entra no produto mas não é filamento.</p>
+      <div id="extras_list"></div>
+      <button class="add-btn" onclick="addExtra()">+ adicionar item extra</button>
+      <div id="extras_total" style="display:none" class="extra-total"></div>
+    </div>
+  </div>
+
+  <!-- PRODUTOS -->
+  <div id="panel-produtos" class="panel">
+    <div class="sec">
+      <div class="sec-title">Lista de produtos cadastrados</div>
+      <p style="font-size:12px;color:#aaa;margin-bottom:12px">Cada produto tem seus próprios dados. O resultado de capacidade mensal é calculado automaticamente.</p>
+      <button class="add-btn" style="margin-bottom:14px" onclick="addProduto()">+ novo produto</button>
+      <div id="produtos_list"><div class="prod-list-empty">Nenhum produto ainda. Clique em "+ novo produto" para começar.</div></div>
+    </div>
+  </div>
+
+  <!-- AVANÇADO -->
+  <div id="panel-adv" class="panel">
+    <div class="sec">
+      <div class="sec-title">Energia elétrica</div>
+      <div class="energia-calc">
+        <div class="ec-title">🔧 Calculadora de tarifa</div>
+        <div class="ec-row">
+          <input type="number" id="ec_potencia" value="180" min="1" step="1" oninput="recalcEnergia()">
+          <span>W ×</span>
+          <input type="number" id="ec_tarifa" value="1.23" min="0.01" step="0.01" oninput="recalcEnergia()">
+          <span>R$/kWh ÷ 1000 =</span>
+        </div>
+        <div class="ec-result" id="ec_result">R$ 0,22 por hora</div>
+        <button class="btn-aplicar" onclick="aplicarEnergia()">Aplicar na calculadora</button>
+      </div>
+      <div class="info-row">
+        <span class="info-pill">Bambu A1: <b>~180W</b> média real</span>
+        <span class="info-pill">Rio (Light): <b>R$1,23/kWh</b></span>
+        <span class="info-pill">= <b>R$0,22/h</b></span>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Custo de energia (R$/h)</label>
+          <input type="number" id="energia" value="0.22" min="0" step="0.01">
+          <div class="hint">Atualize acima quando a tarifa mudar</div>
+        </div>
+        <div class="field">
+          <label>Desgaste da impressora (R$/h)</label>
+          <input type="number" id="desgaste" value="0.50" min="0" step="0.01">
+          <div class="hint">Bico, correia, lubrificação, depreciação</div>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="field">
+          <label>Pós-processamento (min)</label>
+          <input type="number" id="pos" value="15" min="0">
+          <div class="hint">Suporte, lixar, montar, embalar</div>
+        </div>
+        <div class="field"><label>Sua hora de trabalho (R$/h)</label><input type="number" id="hora_trab" value="25" min="0"></div>
+      </div>
+      <div class="field"><label>Embalagem (R$)</label><input type="number" id="embalagem" value="4" min="0"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-title">Impressora</div>
+      <div class="g2">
+        <div class="field"><label>Valor da impressora (R$)</label><input type="number" id="imp_val" value="3500" min="0"></div>
+        <div class="field"><label>Vida útil estimada (anos)</label><input type="number" id="imp_vida" value="3" min="1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MARKETPLACE -->
+  <div id="panel-mkt" class="panel">
+    <div class="subtab-row">
+      <button class="subtab active" onclick="setSubTab('shopee',this)">🛒 Shopee</button>
+      <button class="subtab" onclick="setSubTab('ml',this)">🛍 Mercado Livre</button>
+    </div>
+    <div id="subpanel-shopee" class="subpanel active">
+      <div class="sec">
+        <div class="sec-title">Taxas da Shopee</div>
+        <div class="info-row">
+          <span class="info-pill">Comissão: <b>18% sobre valor total</b></span>
+          <span class="info-pill">Taxa fixa por item: <b>R$4,26</b></span>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Comissão Shopee (%)</label><input type="number" id="shopee_comissao" value="18" min="0" max="30" step="0.5"></div>
+          <div class="field"><label>Taxa fixa por item (R$)</label><input type="number" id="shopee_fixo" value="4.26" min="0" step="0.01"></div>
+        </div>
+        <div class="row"><label>Frete subsidiado (%)</label><input type="range" id="shopee_frete" min="0" max="30" step="1" value="10"><span class="val" id="shopee_frete_v">10%</span></div>
+        <hr class="divider">
+        <div class="field"><label>Preço que deseja cobrar na Shopee (R$)</label><input type="number" id="shopee_preco" placeholder="R$ 0,00" min="0" step="0.5"></div>
+        <div id="shopee_resultado" class="mkt-result"></div>
+      </div>
+      <div class="tip info">Na Shopee a comissão de 18% incide sobre o valor total incluindo frete. Some sempre comissão + taxa fixa + frete antes de definir o preço.</div>
+    </div>
+    <div id="subpanel-ml" class="subpanel">
+      <div class="sec">
+        <div class="sec-title">Configuração do anúncio — 2026</div>
+        <div class="g2">
+          <div class="field">
+            <label>Tipo de anúncio</label>
+            <select id="ml_tipo" onchange="calcML()">
+              <option value="classico_10">Clássico — 10%</option>
+              <option value="classico_12">Clássico — 12%</option>
+              <option value="classico_14" selected>Clássico — 14%</option>
+              <option value="premium_16">Premium — 16%</option>
+              <option value="premium_17">Premium — 17%</option>
+              <option value="premium_19">Premium — 19%</option>
+            </select>
+            <div class="hint">Clássico 10-14% · Premium 16-19%</div>
+          </div>
+          <div class="field">
+            <label>Preço do produto (R$)</label>
+            <input type="number" id="ml_preco" placeholder="R$ 0,00" min="0" step="0.5">
+            <div class="hint">Abaixo de R$79: custo operacional variável</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Custo de frete/logística (R$)</label>
+          <input type="number" id="ml_frete" value="0" min="0" step="0.5">
+          <div class="hint">Acima de R$79: frete grátis obrigatório</div>
+        </div>
+        <div id="ml_resultado" class="mkt-result"></div>
+      </div>
+      <div class="tip info" style="margin-bottom:10px"><strong>Regras 2026:</strong> Abaixo de R$79 custo operacional variável por peso/dimensão. Acima de R$79 frete grátis obrigatório.</div>
+      <div class="tip warn">Para margem exata use a planilha oficial do Mercado Livre. Valores aqui são estimativas baseadas nas comissões de 2026.</div>
+    </div>
+  </div>
+
+  <!-- ALERTA -->
+  <div class="sec">
+    <div class="sec-title">Verificar preço praticado (venda direta)</div>
+    <div class="alerta-input-row">
+      <label>Quanto você quer cobrar?</label>
+      <input type="number" id="preco_usuario" placeholder="R$ 0,00" min="0" step="0.5">
+    </div>
+    <div class="alerta-box" id="alerta_box">
+      <div class="alerta-titulo"><span id="alerta_icon"></span><span id="alerta_titulo_el"></span></div>
+      <div id="alerta_msg"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADO GERAL -->
+  <div class="result">
+    <div class="sec-title" style="margin-bottom:12px">Resultado — venda direta</div>
+    <div class="r-grid">
+      <div class="rcard"><div class="rl">Custo total</div><div class="rv" id="r_custo">—</div><div class="rs">sem margem</div></div>
+      <div class="rcard"><div class="rl">Lucro/hora máquina</div><div class="rv" id="r_lph">—</div><div class="rs">com margem 60%</div></div>
+      <div class="rcard"><div class="rl">Peças/dia (18h)</div><div class="rv" id="r_ppd">—</div><div class="rs" id="r_ppd_sub">lucro diário</div></div>
+    </div>
+    <div class="price-strip">
+      <div class="pcard p50"><div class="pl">Margem 50%</div><div class="pv" id="p50">—</div><div class="pm">mínimo</div></div>
+      <div class="pcard p60"><div class="pl">Margem 60% ★</div><div class="pv" id="p60">—</div><div class="pm">recomendado</div></div>
+      <div class="pcard p70"><div class="pl">Margem 70%</div><div class="pv" id="p70">—</div><div class="pm">premium</div></div>
+      <div class="pcard p80"><div class="pl">Margem 80%</div><div class="pv" id="p80">—</div><div class="pm">personalizado</div></div>
+    </div>
+    <table class="breakdown" id="breakdown_table"></table>
+    <div class="tip" id="tip_res"></div>
+  </div>
+
+  <!-- MARGEM DE CONTRIBUIÇÃO E CAPACIDADE -->
+  <div class="mc-section">
+    <div class="sec-title">Margem de contribuição e capacidade de produção</div>
+
+    <div class="field" style="margin-bottom:14px">
+      <label>Preço de venda para análise (R$)</label>
+      <input type="number" id="preco_analise" placeholder="Digite o preço que pretende cobrar" min="0" step="0.5">
+      <div class="hint">Preencha para ver a análise completa de margem e produção</div>
+    </div>
+
+    <div class="mc-big-grid" id="mc_cards">
+      <div class="mc-big-card mc-verde"><div class="mcb-label">Margem de contribuição</div><div class="mcb-val" id="mc_val">—</div><div class="mcb-sub" id="mc_pct">por peça vendida</div></div>
+      <div class="mc-big-card mc-azul"><div class="mcb-label">Índice MC</div><div class="mcb-val" id="mc_idx">—</div><div class="mcb-sub">% do preço de venda</div></div>
+      <div class="mc-big-card mc-laranja"><div class="mcb-label">Ponto de equilíbrio</div><div class="mcb-val" id="mc_pe">—</div><div class="mcb-sub" id="mc_pe_sub">peças/mês para pagar impressora</div></div>
+    </div>
+
+    <div class="sec-title" style="margin-top:4px;margin-bottom:10px">Capacidade de produção mensal</div>
+    <div class="prod-grid" id="prod_grid">
+      <div class="prod-card"><div class="pc-label">Peças/dia</div><div class="pc-val" id="prod_dia">—</div><div class="pc-sub" id="prod_dia_sub">18h/dia</div></div>
+      <div class="prod-card"><div class="pc-label">Peças/semana</div><div class="pc-val" id="prod_sem">—</div><div class="pc-sub">7 dias</div></div>
+      <div class="prod-card"><div class="pc-label">Peças/mês</div><div class="pc-val" id="prod_mes">—</div><div class="pc-sub">22 dias úteis</div></div>
+      <div class="prod-card"><div class="pc-label">Receita bruta/mês</div><div class="pc-val" id="prod_rec">—</div><div class="pc-sub" id="prod_rec_sub">com o preço informado</div></div>
+    </div>
+
+    <div class="pe-bar" id="pe_bar" style="display:none">
+      <div class="pe-title" id="pe_title">Progresso até o ponto de equilíbrio mensal</div>
+      <div class="bar-wrap"><div class="bar-fill" id="pe_fill" style="width:0%;background:#1D9E75"></div></div>
+      <div class="bar-labels"><span id="pe_label_left">0 peças</span><span id="pe_label_right">meta</span></div>
+    </div>
+
+    <div class="sec-title" style="margin-top:14px;margin-bottom:10px">Cenários de faturamento mensal</div>
+    <div class="cenario-grid" id="cenario_grid">
+      <div class="cenario-card"><div class="cc-title">🌱 Conservador<br><span style="font-size:10px;color:#aaa">50% da capacidade</span></div><div class="cc-pecas" id="c_cons_pecas">—</div><div class="cc-lucro" id="c_cons_lucro">—</div><div class="cc-sub">lucro líquido</div></div>
+      <div class="cenario-card" style="border:1.5px solid #378ADD;background:#f0f7ff"><div class="cc-title">🎯 Realista<br><span style="font-size:10px;color:#aaa">75% da capacidade</span></div><div class="cc-pecas" id="c_real_pecas">—</div><div class="cc-lucro" id="c_real_lucro">—</div><div class="cc-sub">lucro líquido</div></div>
+      <div class="cenario-card"><div class="cc-title">🚀 Máximo<br><span style="font-size:10px;color:#aaa">100% da capacidade</span></div><div class="cc-pecas" id="c_max_pecas">—</div><div class="cc-lucro" id="c_max_lucro">—</div><div class="cc-sub">lucro líquido</div></div>
+    </div>
+
+    <div class="tip info" id="mc_tip" style="margin-top:12px">Digite o preço de venda acima para ver a análise completa.</div>
+  </div>
+
+  <footer>Precificadora de Impressão 3D · Bambu Lab A1 · Rio de Janeiro · Tarifa Light R$1,23/kWh · 2026</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let pecas=[],pecaId=0,custoAtual=0,tempoAtual=0;
+let extras=[],extraId=0;
+let produtos=[],produtoId=0;
+
+function setTab(t,btn){
+  document.querySelectorAll('.tab-row .tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');$('panel-'+t).classList.add('active');
+}
+function setSubTab(t,btn){
+  document.querySelectorAll('.subtab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');$('subpanel-'+t).classList.add('active');
+}
+function hToStr(h){
+  const hh=Math.floor(h),mm=Math.round((h-hh)*60);
+  return hh>0?(mm>0?hh+'h'+mm+'min':hh+'h'):(mm+'min');
+}
+function addPeca(){const id=++pecaId;pecas.push({id,peso:10,h:0,m:30});renderPecas();calc();}
+function removePeca(id){pecas=pecas.filter(p=>p.id!==id);renderPecas();calc();}
+function renderPecas(){
+  $('pecas_list').innerHTML=pecas.length===0
+    ?'<p style="font-size:13px;color:#aaa;margin-bottom:8px">Nenhuma peça adicional.</p>'
+    :pecas.map(p=>`
+    <div class="peca-row">
+      <div class="peca-row-header">
+        <span>Peça adicional</span>
+        <button class="remove-btn" onclick="removePeca(${p.id})" style="margin-bottom:0">✕ remover</button>
+      </div>
+      <div class="peca-field" style="margin-bottom:8px">
+        <label>Peso (g)</label>
+        <input type="number" value="${p.peso}" min="0" step="0.1" oninput="pecas.find(x=>x.id==${p.id}).peso=parseFloat(this.value)||0;calc()">
+      </div>
+      <div class="peca-slider-row">
+        <label>Horas de impressão</label>
+        <input type="range" id="ph_${p.id}" min="0" max="24" step="0.25" value="${p.h}"
+          oninput="pecas.find(x=>x.id==${p.id}).h=parseFloat(this.value);$('ph_v_${p.id}').textContent=hToStr(parseFloat(this.value));calc()">
+        <span class="val" id="ph_v_${p.id}">${hToStr(p.h)}</span>
+      </div>
+      <div class="peca-slider-row">
+        <label>Minutos extras</label>
+        <input type="range" id="pm_${p.id}" min="0" max="59" step="1" value="${p.m}"
+          oninput="pecas.find(x=>x.id==${p.id}).m=parseInt(this.value);$('pm_v_${p.id}').textContent=this.value+'min';calc()">
+        <span class="val" id="pm_v_${p.id}">${p.m}min</span>
+      </div>
+    </div>`).join('');
+}
+function v(id){return parseFloat($(id)?$(id).value:0)||0;}
+function fR(n){return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function fN(n){return n.toLocaleString('pt-BR',{maximumFractionDigits:0});}
+
+function recalcEnergia(){
+  const pot=v('ec_potencia'),tar=v('ec_tarifa');
+  $('ec_result').textContent='R$ '+(pot*tar/1000).toFixed(4).replace('.',',')+' por hora';
+}
+function aplicarEnergia(){
+  const resultado=(v('ec_potencia')*v('ec_tarifa')/1000).toFixed(4);
+  $('energia').value=resultado;
+  calc();
+  $('ec_result').textContent='✓ Aplicado! R$ '+parseFloat(resultado).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:4})+' por hora';
+}
+
+function calcMC(){
+  const preco=v('preco_analise');
+  const custo=custoAtual;
+  const tempo=tempoAtual;
+  const imp_val=v('imp_val'),imp_vida=v('imp_vida');
+  const qtdB=Math.max(1,Math.round(v('qtd_bandeja')||1));
+  const qtdI=Math.max(1,Math.round(v('qtd_impressoras')||1));
+  const horasDia=Math.max(1,v('horas_dia')||18);
+  const diasMes=Math.max(1,v('dias_mes')||22);
+
+  if(!preco||preco===0){
+    $('mc_val').textContent='—';$('mc_idx').textContent='—';$('mc_pe').textContent='—';
+    $('prod_dia').textContent='—';$('prod_sem').textContent='—';$('prod_mes').textContent='—';$('prod_rec').textContent='—';
+    $('c_cons_pecas').textContent='—';$('c_cons_lucro').textContent='—';
+    $('c_real_pecas').textContent='—';$('c_real_lucro').textContent='—';
+    $('c_max_pecas').textContent='—';$('c_max_lucro').textContent='—';
+    $('pe_bar').style.display='none';
+    $('mc_tip').textContent='Digite o preço de venda acima para ver a análise completa.';
+    return;
+  }
+
+  const mc=preco-custo;
+  const mc_pct=preco>0?(mc/preco)*100:0;
+
+  // Capacidade usando horas/dia e dias/mês configurados
+  const bandejas_dia=tempo>0?Math.floor(horasDia/tempo):0;
+  const pecas_dia=bandejas_dia*qtdB*qtdI;
+  const pecas_sem=pecas_dia*7;
+  const pecas_mes=pecas_dia*diasMes;
+  const receita_mes=pecas_mes*preco;
+  const lucro_mes=pecas_mes*mc;
+
+  const custo_fixo_mes=imp_val>0?(imp_val/(imp_vida*12)):0;
+  const pe=mc>0?Math.ceil(custo_fixo_mes/mc):0;
+
+  const c_cons=Math.floor(pecas_mes*0.5);
+  const c_real=Math.floor(pecas_mes*0.75);
+  const c_max=pecas_mes;
+
+  $('mc_val').textContent=fR(mc);
+  $('mc_pct').textContent=mc_pct.toFixed(1)+'% do preço de venda';
+  $('mc_idx').textContent=mc_pct.toFixed(1)+'%';
+  $('mc_pe').textContent=pe>0?fN(pe)+' peças':'—';
+  $('mc_pe_sub').textContent=pe>0&&pecas_mes>0?'equivale a '+((pe/pecas_mes)*100).toFixed(0)+'% da capacidade mensal':'preencha o valor da impressora';
+
+  $('prod_dia').textContent=fN(pecas_dia);
+  const subDia=`${bandejas_dia} band. × ${qtdB} peças × ${qtdI} imp. (${horasDia}h/dia)`;
+  if($('prod_dia_sub'))$('prod_dia_sub').textContent=subDia;
+  $('prod_sem').textContent=fN(pecas_sem);
+  $('prod_mes').textContent=fN(pecas_mes);
+  if($('prod_mes_sub'))$('prod_mes_sub').textContent=diasMes+' dias/mês';
+  $('prod_rec').textContent=fR(receita_mes);
+  $('prod_rec_sub').textContent='lucro líquido: '+fR(lucro_mes);
+
+  if(pe>0&&pecas_mes>0){
+    $('pe_bar').style.display='block';
+    const pct=Math.min((pecas_mes/pe)*100,100);
+    $('pe_fill').style.width=pct+'%';
+    $('pe_fill').style.background=pct>=100?'#1D9E75':'#378ADD';
+    $('pe_title').textContent='Capacidade mensal ('+diasMes+' dias) vs ponto de equilíbrio';
+    $('pe_label_left').textContent='Capacidade: '+fN(pecas_mes)+(pct>=100?' ✓':'');
+    $('pe_label_right').textContent='Meta: '+fN(pe)+' peças/mês';
+  } else {
+    $('pe_bar').style.display='none';
+  }
+
+  $('c_cons_pecas').textContent=fN(c_cons)+' peças';
+  $('c_cons_lucro').textContent=fR(c_cons*mc);
+  $('c_real_pecas').textContent=fN(c_real)+' peças';
+  $('c_real_lucro').textContent=fR(c_real*mc);
+  $('c_max_pecas').textContent=fN(c_max)+' peças';
+  $('c_max_lucro').textContent=fR(c_max*mc);
+
+  let tip='';
+  if(mc<0) tip='Com esse preço você está vendendo abaixo do custo. Aumente para pelo menos '+fR(custo)+' para não ter prejuízo.';
+  else if(mc_pct<30) tip='Margem de contribuição baixa ('+mc_pct.toFixed(0)+'%). Cada venda contribui pouco para cobrir seus custos fixos.';
+  else if(mc_pct<50) tip='Margem razoável. Com '+fN(pecas_mes)+' peças/mês na capacidade total você gera '+fR(lucro_mes)+' de lucro líquido.';
+  else tip='Ótima margem de contribuição de '+mc_pct.toFixed(0)+'%! Na capacidade máxima você pode faturar '+fR(lucro_mes)+' de lucro por mês.';
+  $('mc_tip').textContent=tip;
+}
+
+function calcShopee(){
+  const preco=v('shopee_preco'),comissao=v('shopee_comissao')/100,fixo=v('shopee_fixo'),frete=v('shopee_frete')/100,custo=custoAtual;
+  const el=$('shopee_resultado');
+  if(!preco){el.innerHTML='';return;}
+  const taxa_comissao=preco*comissao,taxa_frete=preco*frete,total_taxas=taxa_comissao+fixo+taxa_frete;
+  const liquido=preco-total_taxas,lucro=liquido-custo,margem=preco>0?(lucro/preco)*100:0;
+  const precoMinimo=(custo+fixo)/(1-comissao-frete);
+  el.innerHTML=`
+    <div class="mkt-cards">
+      <div class="mkt-card"><div class="mc-title">Taxas totais Shopee</div><div class="mc-val">${fR(total_taxas)}</div><div class="mc-sub">comissão + fixo + frete</div></div>
+      <div class="mkt-card"><div class="mc-title">Você recebe líquido</div><div class="mc-val">${fR(liquido)}</div><div class="mc-sub">após todas as taxas</div></div>
+      <div class="mkt-card"><div class="mc-title">Lucro por peça</div><div class="mc-val" style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</div><div class="mc-sub">margem real ${margem.toFixed(0)}%</div></div>
+      <div class="mkt-card destaque"><div class="mc-title">Preço mínimo na Shopee</div><div class="mc-val">${fR(precoMinimo)}</div><div class="mc-sub">para cobrir custos + taxas</div></div>
+    </div>
+    <table class="breakdown">
+      <tr><td style="color:#666">Preço anunciado</td><td>${fR(preco)}</td></tr>
+      <tr><td style="color:#666">Comissão ${(comissao*100).toFixed(0)}%</td><td>− ${fR(taxa_comissao)}</td></tr>
+      <tr><td style="color:#666">Taxa fixa por item</td><td>− ${fR(fixo)}</td></tr>
+      <tr><td style="color:#666">Frete subsidiado ${(frete*100).toFixed(0)}%</td><td>− ${fR(taxa_frete)}</td></tr>
+      <tr><td style="color:#666">Custo de produção</td><td>− ${fR(custo)}</td></tr>
+      <tr style="border-top:1px solid #ddd"><td><strong>Lucro líquido</strong></td><td><strong style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</strong></td></tr>
+    </table>
+    ${lucro<0?'<div class="tip warn" style="margin-top:10px">Prejuízo nesse preço. Mínimo sem perder: '+fR(precoMinimo)+'</div>':
+      margem<30?'<div class="tip warn" style="margin-top:10px">Margem baixa. Considere subir para pelo menos '+fR(precoMinimo*1.35)+'.</div>':
+      '<div class="tip" style="margin-top:10px">Preço viável na Shopee com margem de '+margem.toFixed(0)+'% após taxas.</div>'}`;
+}
+
+function calcML(){
+  const tipoMap={classico_10:0.10,classico_12:0.12,classico_14:0.14,premium_16:0.16,premium_17:0.17,premium_19:0.19};
+  const tipo=$('ml_tipo').value,comissao=tipoMap[tipo]||0.14;
+  const preco=v('ml_preco'),frete=v('ml_frete'),custo=custoAtual;
+  const el=$('ml_resultado');
+  if(!preco){el.innerHTML='';return;}
+  const isPremium=tipo.startsWith('premium'),abaixo79=preco<79;
+  const custo_op=abaixo79?preco*0.08:0;
+  const taxa_comissao=preco*comissao,total_taxas=taxa_comissao+frete+custo_op;
+  const liquido=preco-total_taxas,lucro=liquido-custo,margem=preco>0?(lucro/preco)*100:0;
+  const precoMinimo=custo/(1-comissao-0.08);
+  el.innerHTML=`
+    ${abaixo79?'<div class="tip warn" style="margin-bottom:10px">Produto abaixo de R$79: custo operacional variável (~8% estimado).</div>':''}
+    ${preco>=79?'<div class="tip info" style="margin-bottom:10px">Acima de R$79: frete grátis obrigatório. Inclua o custo real do envio.</div>':''}
+    <div class="mkt-cards">
+      <div class="mkt-card"><div class="mc-title">Comissão ML (${(comissao*100).toFixed(0)}%)</div><div class="mc-val">${fR(taxa_comissao)}</div><div class="mc-sub">${isPremium?'premium — parcelado s/ juros':'anúncio clássico'}</div></div>
+      <div class="mkt-card"><div class="mc-title">Você recebe líquido</div><div class="mc-val">${fR(liquido)}</div><div class="mc-sub">após comissão + frete</div></div>
+      <div class="mkt-card"><div class="mc-title">Lucro por peça</div><div class="mc-val" style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</div><div class="mc-sub">margem real ${margem.toFixed(0)}%</div></div>
+      <div class="mkt-card destaque"><div class="mc-title">Preço mínimo no ML</div><div class="mc-val">${fR(precoMinimo)}</div><div class="mc-sub">estimativa para cobrir custos</div></div>
+    </div>
+    <table class="breakdown">
+      <tr><td style="color:#666">Preço anunciado</td><td>${fR(preco)}</td></tr>
+      <tr><td style="color:#666">Comissão ${(comissao*100).toFixed(0)}%</td><td>− ${fR(taxa_comissao)}</td></tr>
+      ${abaixo79?`<tr><td style="color:#666">Custo operacional (~8%)</td><td>− ${fR(custo_op)}</td></tr>`:''}
+      ${frete>0?`<tr><td style="color:#666">Frete/logística</td><td>− ${fR(frete)}</td></tr>`:''}
+      <tr><td style="color:#666">Custo de produção</td><td>− ${fR(custo)}</td></tr>
+      <tr style="border-top:1px solid #ddd"><td><strong>Lucro líquido</strong></td><td><strong style="color:${lucro>=0?'#1D9E75':'#E24B4A'}">${fR(lucro)}</strong></td></tr>
+    </table>
+    ${lucro<0?'<div class="tip warn" style="margin-top:10px">Prejuízo. Mínimo estimado: '+fR(precoMinimo)+'</div>':
+      margem<25?'<div class="tip warn" style="margin-top:10px">Margem apertada. Considere subir o preço ou usar anúncio de menor comissão.</div>':
+      '<div class="tip" style="margin-top:10px">Preço viável no Mercado Livre com margem de '+margem.toFixed(0)+'%.</div>'}`;
+}
+
+function atualizarAlerta(){
+  const preco=v('preco_usuario'),box=$('alerta_box');
+  if(!preco){box.style.display='none';return;}
+  const custo=custoAtual,p50=custo/0.5,p60=custo/0.4;
+  const margem=preco>0?((preco-custo)/preco)*100:0,diferenca=preco-custo;
+  box.style.display='block';
+  if(preco<=custo){box.className='alerta-box prejuizo';$('alerta_icon').textContent='✗';$('alerta_titulo_el').textContent='Prejuízo confirmado';$('alerta_msg').textContent='Cobrando '+fR(preco)+' você perde '+fR(Math.abs(diferenca))+' por peça. Custo real: '+fR(custo)+'.';}
+  else if(preco<p50){box.className='alerta-box prejuizo';$('alerta_icon').textContent='⚠';$('alerta_titulo_el').textContent='Preço perigoso — margem abaixo de 50%';$('alerta_msg').textContent='Margem de '+margem.toFixed(0)+'%. Mínimo recomendado: '+fR(p50)+'.';}
+  else if(preco<p60){box.className='alerta-box atencao';$('alerta_icon').textContent='!';$('alerta_titulo_el').textContent='Preço abaixo do recomendado';$('alerta_msg').textContent='Margem de '+margem.toFixed(0)+'%. Ideal: '+fR(p60)+'.';}
+  else{box.className='alerta-box ok';$('alerta_icon').textContent='✓';$('alerta_titulo_el').textContent='Preço saudável — margem de '+margem.toFixed(0)+'%';$('alerta_msg').textContent=fR(preco)+' cobre todos os custos e sobra '+fR(diferenca)+' por peça. '+(margem>=70?'Excelente! Espaço para descontos pontuais.':'Considere subir gradualmente.');}
+}
+
+function calc(){
+  const pesoBase=v('peso'),hBase=v('h'),mBase=v('m'),tempoBase=hBase+(mBase/60);
+  let pesoTotal=pesoBase,tempoTotal=tempoBase;
+  pecas.forEach(p=>{pesoTotal+=p.peso;tempoTotal+=(p.h||0)+(p.m||0)/60;});
+
+  // Peças por bandeja e quantidade de impressoras
+  const qtdBandeja=Math.max(1,Math.round(v('qtd_bandeja')||1));
+  const qtdImpressoras=Math.max(1,Math.round(v('qtd_impressoras')||1));
+  const horasDia=Math.max(1,v('horas_dia')||18);
+  const diasMes=Math.max(1,v('dias_mes')||22);
+
+  // Energia e desgaste são custos de MÁQUINA divididos entre as peças da bandeja
+  // Filamento, pós, embalagem são por PEÇA individual
+  const preco_kg=v('preco_kg'),energia=v('energia'),desgaste=v('desgaste');
+  const pos=v('pos')/60,hora_trab=v('hora_trab'),embalagem=v('embalagem');
+  const imp_val=v('imp_val'),imp_vida=v('imp_vida');
+
+  const c_fil=((pesoTotal/1000)*preco_kg)/qtdBandeja;            // peso total da bandeja ÷ peças
+  const c_energia=(energia*tempoTotal)/qtdBandeja;               // energia da bandeja ÷ peças
+  const c_desgaste=(desgaste*tempoTotal)/qtdBandeja;             // desgaste da bandeja ÷ peças
+  const c_pos=pos*hora_trab,c_emb=embalagem;
+  const c_imp=imp_val>0?((imp_val/(imp_vida*365*18))*tempoTotal/qtdBandeja):0; // depreciação ÷ peças
+  const c_extras=extras.reduce((s,e)=>s+(e.custo*e.qtd),0);     // gastos extras por peça
+
+  const custo=c_fil+c_energia+c_desgaste+c_pos+c_emb+c_imp+c_extras;
+  custoAtual=custo;tempoAtual=tempoTotal;
+
+  // Atualiza pílula informativa
+  const infoEl=$('bandeja_info');
+  if(infoEl){
+    const plural=qtdBandeja>1?qtdBandeja+' peças/bandeja':'1 peça/bandeja';
+    const impPlural=qtdImpressoras>1?qtdImpressoras+' impressoras':'1 impressora';
+    infoEl.textContent=plural+' · '+impPlural+' · '+horasDia+'h/dia · '+diasMes+' dias/mês';
+    infoEl.style.background=qtdBandeja>1||qtdImpressoras>1?'#E6F1FB':'#f0f0e8';
+    infoEl.style.color=qtdBandeja>1||qtdImpressoras>1?'#185FA5':'#666';
+  }
+
+  const p50=custo/0.5,p60=custo/0.4,p70=custo/0.3,p80=custo/0.2;
+  $('h_v').textContent=hToStr(hBase);$('m_v').textContent=mBase+'min';
+  $('r_custo').textContent=fR(custo);
+  const lph=tempoTotal>0?(p60-custo)/tempoTotal:0;
+  $('r_lph').textContent=fR(lph)+'/h';
+  // Capacidade: leva tempoTotal horas por bandeja, cada bandeja faz qtdBandeja peças, qtdImpressoras impressoras em paralelo
+  const bandejas_dia=tempoTotal>0?Math.floor(horasDia/tempoTotal):0;
+  const ppd=bandejas_dia*qtdBandeja*qtdImpressoras;
+  $('r_ppd').textContent=ppd+' peças';
+  $('r_ppd_sub').textContent='~'+fR(ppd*(p60-custo))+'/dia';
+  $('p50').textContent=fR(p50);$('p60').textContent=fR(p60);$('p70').textContent=fR(p70);$('p80').textContent=fR(p80);
+  const energiaRate=v('energia');
+  $('breakdown_table').innerHTML=`
+    <tr><td style="color:#666">Filamento (${pesoTotal.toFixed(1)}g total ÷ ${qtdBandeja})</td><td>${fR(c_fil)}</td></tr>
+    <tr><td style="color:#666">Energia (${tempoTotal.toFixed(2)}h × R$${energiaRate.toFixed(2)} ÷ ${qtdBandeja})</td><td>${fR(c_energia)}</td></tr>
+    <tr><td style="color:#666">Desgaste impressora ÷ ${qtdBandeja}</td><td>${fR(c_desgaste)}</td></tr>
+    <tr><td style="color:#666">Pós-processamento (${v('pos').toFixed(0)}min)</td><td>${fR(c_pos)}</td></tr>
+    <tr><td style="color:#666">Embalagem</td><td>${fR(c_emb)}</td></tr>
+    ${c_imp>0?`<tr><td style="color:#666">Depreciação da impressora ÷ ${qtdBandeja}</td><td>${fR(c_imp)}</td></tr>`:''}
+    ${c_extras>0?`<tr><td style="color:#666">Extras (${extras.length} iten${extras.length>1?'s':''})</td><td>${fR(c_extras)}</td></tr>`:''}
+    ${qtdImpressoras>1?`<tr><td style="color:#aaa;font-size:12px">🖨️ ${qtdImpressoras} impressoras × capacidade de produção</td><td></td></tr>`:''}
+    <tr style="border-top:1px solid #ddd"><td><strong>Custo por peça</strong></td><td><strong>${fR(custo)}</strong></td></tr>`;
+  let tip='';
+  if(tempoTotal>10) tip='Peça com '+hToStr(tempoTotal)+' de impressão é demorada. Certifique-se de cobrar pelo menos '+fR(p60)+'.';
+  else if(custo<10) tip='Custo muito baixo! O preço de '+fR(p60)+' com 60% de margem é altamente competitivo.';
+  else tip='Com '+fR(custo)+' de custo real, vender abaixo de '+fR(p50)+' é prejuízo garantido.';
+  $('tip_res').textContent=tip;
+  atualizarAlerta();calcShopee();calcML();calcMC();
+}
+
+['peso','preco_kg','h','m','energia','desgaste','pos','hora_trab','embalagem','imp_val','imp_vida','qtd_bandeja','qtd_impressoras','horas_dia','dias_mes'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',calc);});
+['shopee_comissao','shopee_fixo','shopee_preco'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',calcShopee);});
+$('shopee_frete').addEventListener('input',()=>{$('shopee_frete_v').textContent=v('shopee_frete').toFixed(0)+'%';calcShopee();});
+['ml_preco','ml_frete'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',calcML);});
+$('preco_usuario').addEventListener('input',atualizarAlerta);
+$('preco_analise').addEventListener('input',calcMC);
+
+// ── GASTOS EXTRAS ──────────────────────────────────────────
+function addExtra(){
+  const id=++extraId;
+  extras.push({id,nome:'',custo:0,qtd:1});
+  renderExtras();
+}
+function removeExtra(id){
+  extras=extras.filter(e=>e.id!==id);
+  renderExtras();calc();
+}
+function renderExtras(){
+  const list=$('extras_list'),total=$('extras_total');
+  if(extras.length===0){
+    list.innerHTML='<p style="font-size:13px;color:#aaa;margin-bottom:8px">Nenhum item extra adicionado.</p>';
+    total.style.display='none';
+    return;
+  }
+  list.innerHTML=extras.map(e=>`
+    <div class="extra-row">
+      <div class="extra-field">
+        <label>Item</label>
+        <input type="text" placeholder="ex: argola para chaveiro" value="${e.nome}" oninput="extras.find(x=>x.id==${e.id}).nome=this.value;">
+      </div>
+      <div class="extra-field sm">
+        <label>Custo unit. (R$)</label>
+        <input type="number" value="${e.custo}" min="0" step="0.01" oninput="extras.find(x=>x.id==${e.id}).custo=parseFloat(this.value)||0;renderExtras();calc();">
+      </div>
+      <div class="extra-field sm">
+        <label>Qtd por peça</label>
+        <input type="number" value="${e.qtd}" min="1" step="1" oninput="extras.find(x=>x.id==${e.id}).qtd=parseInt(this.value)||1;renderExtras();calc();">
+      </div>
+      <button class="remove-btn" onclick="removeExtra(${e.id})" style="margin-bottom:0">✕</button>
+    </div>`).join('');
+  const totalVal=extras.reduce((s,e)=>s+(e.custo*e.qtd),0);
+  total.style.display='inline-block';
+  total.textContent='Total extras por peça: '+fR(totalVal);
+}
+
+// ── LISTA DE PRODUTOS ──────────────────────────────────────
+function calcProduto(p){
+  const qtdB=Math.max(1,p.qtd_bandeja||1);
+  const qtdI=Math.max(1,p.qtd_impressoras||1);
+  const tempo=(p.h||0)+(p.m||0)/60;
+  const c_fil=((p.peso||0)/1000)*(p.preco_kg||80)/qtdB;  // peso total bandeja ÷ peças
+  const energia_h=p.energia||0.22,desgaste_h=p.desgaste||0.50;
+  const c_energia=(energia_h*tempo)/qtdB;
+  const c_desgaste=(desgaste_h*tempo)/qtdB;
+  const c_pos=((p.pos||0)/60)*(p.hora_trab||25);
+  const c_emb=p.embalagem||0;
+  const imp_val=p.imp_val||0,imp_vida=p.imp_vida||3;
+  const c_imp=imp_val>0?((imp_val/(imp_vida*365*18))*tempo/qtdB):0;
+  const c_extras=(p.extras||[]).reduce((s,e)=>s+(e.custo*e.qtd),0);
+  const custo=c_fil+c_energia+c_desgaste+c_pos+c_emb+c_imp+c_extras;
+  const bandejas_dia=tempo>0?Math.floor(18/tempo):0;
+  const ppd=bandejas_dia*qtdB*qtdI;
+  const ppmes=ppd*22;
+  return {custo,ppmes,tempo};
+}
+
+function addProduto(){
+  const id=++produtoId;
+  produtos.push({
+    id,nome:'Novo produto',
+    peso:100,preco_kg:80,h:2,m:0,
+    qtd_bandeja:1,qtd_impressoras:1,
+    energia:0.22,desgaste:0.50,
+    pos:10,hora_trab:25,embalagem:2,
+    imp_val:3500,imp_vida:3,
+    preco_venda:0,extras:[],extraIdLocal:0
+  });
+  renderProdutos();
+}
+function removeProduto(id){
+  produtos=produtos.filter(p=>p.id!==id);
+  renderProdutos();
+}
+function addExtraProduto(pid){
+  const p=produtos.find(x=>x.id===pid);
+  if(!p)return;
+  p.extraIdLocal=(p.extraIdLocal||0)+1;
+  p.extras.push({id:p.extraIdLocal,nome:'',custo:0,qtd:1});
+  renderProdutos();
+}
+function removeExtraProduto(pid,eid){
+  const p=produtos.find(x=>x.id===pid);
+  if(!p)return;
+  p.extras=p.extras.filter(e=>e.id!==eid);
+  renderProdutos();
+}
+
+function renderProdutos(){
+  const list=$('produtos_list');
+  if(produtos.length===0){
+    list.innerHTML='<div class="prod-list-empty">Nenhum produto ainda. Clique em "+ novo produto" para começar.</div>';
+    return;
+  }
+  list.innerHTML=produtos.map(p=>{
+    const {custo,ppmes}=calcProduto(p);
+    const preco=p.preco_venda||0;
+    const margem=preco>0?((preco-custo)/preco)*100:0;
+    const lucro_mes=ppmes*(preco-custo);
+    const margemCor=margem>=60?'#1D9E75':margem>=40?'#D88C00':margem>0?'#D85A30':'#E24B4A';
+    const extrasHtml=p.extras.length===0
+      ?'<p style="font-size:12px;color:#aaa;margin-bottom:6px">Sem extras.</p>'
+      :p.extras.map(e=>`
+        <div class="extra-row" style="padding:7px 8px">
+          <div class="extra-field"><input type="text" placeholder="item extra" value="${e.nome}" oninput="produtos.find(x=>x.id==${p.id}).extras.find(ex=>ex.id==${e.id}).nome=this.value;renderProdutos();" style="font-size:12px;padding:5px 7px"></div>
+          <div class="extra-field sm"><input type="number" placeholder="R$" value="${e.custo||''}" min="0" step="0.01" oninput="produtos.find(x=>x.id==${p.id}).extras.find(ex=>ex.id==${e.id}).custo=parseFloat(this.value)||0;renderProdutos();" style="font-size:12px;padding:5px 7px"></div>
+          <div class="extra-field sm"><input type="number" placeholder="qtd" value="${e.qtd||1}" min="1" step="1" oninput="produtos.find(x=>x.id==${p.id}).extras.find(ex=>ex.id==${e.id}).qtd=parseInt(this.value)||1;renderProdutos();" style="font-size:12px;padding:5px 7px"></div>
+          <button class="remove-btn" onclick="removeExtraProduto(${p.id},${e.id})" style="margin-bottom:0;font-size:11px">✕</button>
+        </div>`).join('');
+
+    return `<div class="produto-card">
+      <div class="produto-card-header">
+        <input class="prod-nome" type="text" value="${p.nome}" placeholder="Nome do produto" oninput="produtos.find(x=>x.id==${p.id}).nome=this.value;">
+        <button class="prod-del" onclick="removeProduto(${p.id})">✕ remover</button>
+      </div>
+      <div class="g2">
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Peso filamento (g)</label><input type="number" value="${p.peso}" min="0" step="0.1" oninput="produtos.find(x=>x.id==${p.id}).peso=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Custo filamento (R$/kg)</label><input type="number" value="${p.preco_kg}" min="0" oninput="produtos.find(x=>x.id==${p.id}).preco_kg=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Tempo impressão (h)</label><input type="number" value="${p.h}" min="0" step="0.25" oninput="produtos.find(x=>x.id==${p.id}).h=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Minutos extras</label><input type="number" value="${p.m}" min="0" max="59" oninput="produtos.find(x=>x.id==${p.id}).m=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Peças por bandeja</label><input type="number" value="${p.qtd_bandeja}" min="1" oninput="produtos.find(x=>x.id==${p.id}).qtd_bandeja=parseInt(this.value)||1;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Nº de impressoras</label><input type="number" value="${p.qtd_impressoras}" min="1" oninput="produtos.find(x=>x.id==${p.id}).qtd_impressoras=parseInt(this.value)||1;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Embalagem (R$)</label><input type="number" value="${p.embalagem}" min="0" step="0.5" oninput="produtos.find(x=>x.id==${p.id}).embalagem=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Pós-processamento (min)</label><input type="number" value="${p.pos}" min="0" oninput="produtos.find(x=>x.id==${p.id}).pos=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px"></div>
+        <div class="field" style="margin-bottom:8px"><label style="font-size:12px">Preço de venda (R$)</label><input type="number" value="${p.preco_venda||''}" min="0" step="0.5" placeholder="R$ 0,00" oninput="produtos.find(x=>x.id==${p.id}).preco_venda=parseFloat(this.value)||0;renderProdutos();" style="font-size:13px;padding:6px 8px;border-color:#378ADD"></div>
+      </div>
+      <div style="margin-top:4px;margin-bottom:4px">
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;font-weight:500">Extras (argolas, buchas, etc.)</div>
+        ${extrasHtml}
+        <button class="add-btn" style="font-size:12px;padding:5px 12px" onclick="addExtraProduto(${p.id})">+ extra</button>
+      </div>
+      <div class="prod-result-strip">
+        <div class="prs-card"><div class="prs-l">Custo por peça</div><div class="prs-v">${fR(custo)}</div></div>
+        <div class="prs-card"><div class="prs-l">Capacidade/mês</div><div class="prs-v">${fN(ppmes)} peças</div></div>
+        <div class="prs-card"><div class="prs-l">Margem</div><div class="prs-v" style="color:${margemCor}">${preco>0?margem.toFixed(0)+'%':'—'}</div></div>
+        <div class="prs-card destaque"><div class="prs-l">Lucro mensal (máx.)</div><div class="prs-v">${preco>0?fR(lucro_mes):'—'}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+recalcEnergia();renderPecas();renderExtras();renderProdutos();calc();
+</script>
+</body>
+</html>
